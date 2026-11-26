@@ -1,7 +1,7 @@
 'use client';
 import { useState } from 'react';
 
-export default function HistorialPartidas({ partidas }) {
+export default function HistorialPartidas({ partidas, esAdmin, onEliminarPartida }) {
   const [filtro, setFiltro] = useState('');
 
   if (!partidas || partidas.length === 0) {
@@ -37,9 +37,14 @@ export default function HistorialPartidas({ partidas }) {
                 <span style={{ margin: '0 0.6rem', color: '#f59e0b', fontWeight: 'bold' }}>{p.resultado}</span>
                 <strong>{p.negras}</strong> <span style={{ color: '#f43f5e', fontWeight: 'bold' }}>({p.cambio_negras >= 0 ? `+${p.cambio_negras}` : p.cambio_negras})</span>
               </div>
-              <span style={{ fontSize: '0.8rem', color: '#64748b' }}>
-                {new Date(p.created_at).toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric' })}
-              </span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                <span style={{ fontSize: '0.8rem', color: '#64748b' }}>
+                  {new Date(p.created_at).toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric' })}
+                </span>
+                {esAdmin && (
+                  <button onClick={() => onEliminarPartida(p.id)} title="Borrar partida" style={{ background: 'transparent', border: 'none', color: '#ef4444', cursor: 'pointer', fontWeight: 'bold' }}>✕</button>
+                )}
+              </div>
             </div>
           ))}
         </div>
@@ -47,3 +52,4 @@ export default function HistorialPartidas({ partidas }) {
     </div>
   );
 }
+
