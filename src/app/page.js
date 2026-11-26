@@ -69,12 +69,44 @@ export default function Home() {
     setMensaje(`Jugador ${nombre} eliminado.`);
     cargarDatos();
   }
-  async function eliminarPartida(id) {
-    if (!esAdmin || !confirm('¿Eliminar esta partida del historial?')) return;
+   async function eliminarPartida(id) {
+    if (!esAdmin) return;
+    const partida = partidas.find((p) => p.id === id);
+    if (!partida) return;
+
+    const confirmar = confirm(
+      `¿Anular esta partida (${partida.blancas} vs ${partida.negras}) y regresar los puntos (${partida.cambio_blancas >= 0 ? '+' : ''}${partida.cambio_blancas} / ${partida.cambio_negras >= 0 ? '+' : ''}${partida.cambio_negras})?`
+    );
+    if (!confirmar) return;
+
+    const jBlancas = jugadores.find((j) => j.nombre === partida.blancas);
+    const jNegras = jugadores.find((j) => j.nombre === partida.negras);
+
+    if (jBlancas) {
+      await supabase
+        .from('jugadores')
+        .update({
+          elo: jBlancas.elo - partida.cambio_blancas,
+          partidas: Math.max(0, (jBlancas.partidas || 1) - 1)
+        })
+        .eq('id', jBlancas.id);
+    }
+
+    if (jNegras) {
+      await supabase
+        .from('jugadores')
+        .update({
+          elo: jNegras.elo - partida.cambio_negras,
+          partidas: Math.max(0, (jNegras.partidas || 1) - 1)
+        })
+        .eq('id', jNegras.id);
+    }
+
     await supabase.from('partidas').delete().eq('id', id);
-    setMensaje('Partida eliminada del historial.');
+    setMensaje(`🔄 Partida anulada: se devolvieron los puntos a ${partida.blancas} y ${partida.negras}.`);
     cargarDatos();
   }
+
 
   async function registrarPartida(e) {
     e.preventDefault();
