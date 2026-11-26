@@ -45,7 +45,7 @@ export default function Home() {
   async function cargarDatos() {
     setCargando(true);
     const { data: dataJug } = await supabase.from('jugadores').select('*').order('elo', { ascending: false });
-    const { data: dataPart } = await supabase.from('partidas').select('*').order('created_at', { ascending: false }).limit(30);
+    const { data: dataPart } = await supabase.from('partidas').select('*').order('created_at', { ascending: false }).limit(500);
     if (dataJug) setJugadores(dataJug);
     if (dataPart) setPartidas(dataPart);
     setCargando(false);
@@ -155,7 +155,7 @@ export default function Home() {
 
       <section style={{ background: '#1e293b', padding: '1.5rem', borderRadius: '0.75rem', border: '1px solid #334155', marginBottom: '2rem' }}>
         <h2 style={{ fontSize: '1.25rem', marginTop: 0 }}>🏅 Tabla General de Posiciones</h2>
-        <TablaRanking jugadores={jugadores} cargando={cargando} esAdmin={esAdmin} onEliminar={eliminarJugador} />
+      <TablaRanking jugadores={jugadores} partidas={partidas} cargando={cargando} esAdmin={esAdmin} onEliminar={eliminarJugador} />
       </section>
 
       <section style={{ background: '#1e293b', padding: '1.5rem', borderRadius: '0.75rem', border: '1px solid #334155' }}>
