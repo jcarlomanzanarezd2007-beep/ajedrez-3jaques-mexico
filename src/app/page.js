@@ -69,6 +69,12 @@ export default function Home() {
     setMensaje(`Jugador ${nombre} eliminado.`);
     cargarDatos();
   }
+    async function cambiarTitulo(id, nuevoTitulo) {
+    if (!esAdmin) return;
+    await supabase.from('jugadores').update({ titulo: nuevoTitulo }).eq('id', id);
+    cargarDatos();
+  }
+
    async function eliminarPartida(id) {
     if (!esAdmin) return;
     const partida = partidas.find((p) => p.id === id);
@@ -189,7 +195,7 @@ export default function Home() {
 
       <section style={{ background: '#1e293b', padding: '1.5rem', borderRadius: '0.75rem', border: '1px solid #334155', marginBottom: '2rem' }}>
         <h2 style={{ fontSize: '1.25rem', marginTop: 0 }}>🏅 Tabla General de Posiciones</h2>
-      <TablaRanking jugadores={jugadores} partidas={partidas} cargando={cargando} esAdmin={esAdmin} onEliminar={eliminarJugador} />
+      <TablaRanking jugadores={jugadores} partidas={partidas} cargando={cargando} esAdmin={esAdmin} onEliminar={eliminarJugador} onCambiarTitulo={cambiarTitulo} />
       </section>
 
       <section style={{ background: '#1e293b', padding: '1.5rem', borderRadius: '0.75rem', border: '1px solid #334155' }}>
