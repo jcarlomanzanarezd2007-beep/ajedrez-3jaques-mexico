@@ -129,15 +129,24 @@ export default function TablaRanking({ jugadores, partidas = [], cargando, esAdm
               <div style={{ fontWeight: '500', display: 'flex', alignItems: 'center' }}>{renderTitulo(j.titulo)}<span style={{ textDecoration: 'underline dotted #475569' }}>{j.nombre}</span></div>
               <div style={{ fontWeight: 'bold', color: '#38bdf8' }}>{j.elo}</div>
               <div style={{ color: '#94a3b8' }}>{j.partidas || 0} (K={(j.partidas || 0) < 30 ? 40 : 20})</div>
-              {esAdmin && (
-                <div style={{ textAlign: 'right', display: 'flex', justifyContent: 'flex-end', gap: '0.5rem', alignItems: 'center' }} onClick={(e) => e.stopPropagation()}>
-                  <select value={j.titulo || ''} onChange={(e) => onCambiarTitulo(j.id, e.target.value)} style={{ background: '#0f172a', color: '#fbbf24', border: '1px solid #475569', borderRadius: '0.3rem', padding: '0.2rem', fontSize: '0.8rem' }}>
+                            {esAdmin && (
+                <div style={{ textAlign: 'right', display: 'flex', justifyContent: 'flex-end', gap: '0.5rem', alignItems: 'center' }} onClick={(e) => e.stopPropagation()} onMouseDown={(e) => e.stopPropagation()}>
+                  <select
+                    value={j.titulo || ''}
+                    onClick={(e) => e.stopPropagation()}
+                    onChange={(e) => {
+                      e.stopPropagation();
+                      onCambiarTitulo(j.id, e.target.value);
+                    }}
+                    style={{ background: '#0f172a', color: '#fbbf24', border: '1px solid #475569', borderRadius: '0.3rem', padding: '0.25rem', fontSize: '0.8rem', cursor: 'pointer' }}
+                  >
                     <option value="">Sin título</option>
                     {TITULOS.map((t) => <option key={t} value={t}>{t}</option>)}
                   </select>
-                  <button onClick={() => onEliminar(j.id, j.nombre)} style={{ background: 'transparent', border: 'none', color: '#ef4444', cursor: 'pointer', fontWeight: 'bold', fontSize: '1rem' }}>✕</button>
+                  <button onClick={(e) => { e.stopPropagation(); onEliminar(j.id, j.nombre); }} style={{ background: 'transparent', border: 'none', color: '#ef4444', cursor: 'pointer', fontWeight: 'bold', fontSize: '1rem' }}>✕</button>
                 </div>
               )}
+
             </div>
           ))}
         </div>
