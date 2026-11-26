@@ -1,7 +1,9 @@
 'use client';
 import { useState } from 'react';
 
-export default function TablaRanking({ jugadores, partidas = [], cargando, esAdmin, onEliminar }) {
+const TITULOS = ['GM', 'IM', 'FM', 'CM', 'WGM', 'WIM', 'WFM', 'WCM', 'MN'];
+
+export default function TablaRanking({ jugadores, partidas = [], cargando, esAdmin, onEliminar, onCambiarTitulo }) {
   const [busqueda, setBusqueda] = useState('');
   const [seleccionado, setSeleccionado] = useState(null);
 
@@ -19,6 +21,15 @@ export default function TablaRanking({ jugadores, partidas = [], cargando, esAdm
     if (puesto === 2) return '🥈';
     if (puesto === 3) return '🥉';
     return puesto;
+  }
+
+  function renderTitulo(titulo) {
+    if (!titulo) return null;
+    return (
+      <span style={{ background: '#78350f', color: '#fbbf24', border: '1px solid #f59e0b', fontSize: '0.72rem', fontWeight: 'bold', padding: '0.1rem 0.35rem', borderRadius: '0.3rem', marginRight: '0.45rem' }}>
+        {titulo}
+      </span>
+    );
   }
 
   function obtenerEstadisticas(nombreJugador) {
@@ -60,19 +71,14 @@ export default function TablaRanking({ jugadores, partidas = [], cargando, esAdm
 
   return (
     <div>
-      {/* Podio Top 3 */}
       {!busqueda && top3.length > 0 && (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '0.75rem', marginBottom: '1.25rem' }}>
           {top3.map((j) => {
             const borde = j.puesto === 1 ? '#f59e0b' : j.puesto === 2 ? '#94a3b8' : '#b45309';
             return (
-              <div
-                key={j.id}
-                onClick={() => setSeleccionado(j)}
-                style={{ background: '#0f172a', border: `1px solid ${borde}`, borderRadius: '0.65rem', padding: '0.9rem', textAlign: 'center', cursor: 'pointer' }}
-              >
+              <div key={j.id} onClick={() => setSeleccionado(j)} style={{ background: '#0f172a', border: `1px solid ${borde}`, borderRadius: '0.65rem', padding: '0.9rem', textAlign: 'center', cursor: 'pointer' }}>
                 <div style={{ fontSize: '1.6rem', marginBottom: '0.25rem' }}>{obtenerMedalla(j.puesto)}</div>
-                <div style={{ fontWeight: 'bold', fontSize: '0.95rem', marginBottom: '0.2rem' }}>{j.nombre}</div>
+                <div style={{ fontWeight: 'bold', fontSize: '0.95rem', marginBottom: '0.2rem' }}>{renderTitulo(j.titulo)}{j.nombre}</div>
                 <div style={{ color: '#38bdf8', fontWeight: 'bold', fontSize: '1.05rem' }}>{j.elo} Elo</div>
               </div>
             );
@@ -80,23 +86,16 @@ export default function TablaRanking({ jugadores, partidas = [], cargando, esAdm
         </div>
       )}
 
-      {/* Buscador */}
       <div style={{ marginBottom: '1rem' }}>
-        <input
-          type="text"
-          placeholder="🔍 Buscar jugador por nombre (haz clic en un jugador para ver sus estadísticas)..."
-          value={busqueda}
-          onChange={(e) => setBusqueda(e.target.value)}
-          style={{ width: '100%', boxSizing: 'border-box', padding: '0.65rem 0.9rem', borderRadius: '0.5rem', border: '1px solid #475569', background: '#0f172a', color: '#fff', fontSize: '0.95rem' }}
-        />
+        <input type="text" placeholder="🔍 Buscar jugador por nombre (haz clic para ver estadísticas)..." value={busqueda} onChange={(e) => setBusqueda(e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '0.65rem 0.9rem', borderRadius: '0.5rem', border: '1px solid #475569', background: '#0f172a', color: '#fff', fontSize: '0.95rem' }} />
       </div>
 
-      {/* Tarjeta de Estadísticas Individuales */}
       {seleccionado && stats && (
         <div style={{ background: '#0f172a', border: '1px solid #38bdf8', borderRadius: '0.75rem', padding: '1.25rem', marginBottom: '1.5rem' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
             <div>
               <span style={{ color: '#f59e0b', fontWeight: 'bold', marginRight: '0.5rem' }}>{obtenerMedalla(seleccionado.puesto)}</span>
+              {renderTitulo(seleccionado.titulo)}
               <strong style={{ fontSize: '1.15rem' }}>{seleccionado.nombre}</strong>
               <span style={{ marginLeft: '0.75rem', color: '#38bdf8', fontWeight: 'bold' }}>{seleccionado.elo} Elo</span>
             </div>
@@ -104,26 +103,11 @@ export default function TablaRanking({ jugadores, partidas = [], cargando, esAdm
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(110px, 1fr))', gap: '0.75rem', textAlign: 'center' }}>
-            <div style={{ background: '#1e293b', padding: '0.6rem', borderRadius: '0.5rem' }}>
-              <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>Victorias</div>
-              <div style={{ fontSize: '1.2rem', fontWeight: 'bold', color: '#10b981' }}>{stats.victorias}</div>
-            </div>
-            <div style={{ background: '#1e293b', padding: '0.6rem', borderRadius: '0.5rem' }}>
-              <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>Empates</div>
-              <div style={{ fontSize: '1.2rem', fontWeight: 'bold', color: '#f59e0b' }}>{stats.empates}</div>
-            </div>
-            <div style={{ background: '#1e293b', padding: '0.6rem', borderRadius: '0.5rem' }}>
-              <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>Derrotas</div>
-              <div style={{ fontSize: '1.2rem', fontWeight: 'bold', color: '#ef4444' }}>{stats.derrotas}</div>
-            </div>
-            <div style={{ background: '#1e293b', padding: '0.6rem', borderRadius: '0.5rem' }}>
-              <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>Efectividad</div>
-              <div style={{ fontSize: '1.2rem', fontWeight: 'bold', color: '#38bdf8' }}>{stats.efectividad}%</div>
-            </div>
-            <div style={{ background: '#1e293b', padding: '0.6rem', borderRadius: '0.5rem' }}>
-              <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>Racha Actual</div>
-              <div style={{ fontSize: '0.95rem', fontWeight: 'bold', color: '#f8fafc', marginTop: '0.2rem' }}>{stats.rachaTexto}</div>
-            </div>
+            <div style={{ background: '#1e293b', padding: '0.6rem', borderRadius: '0.5rem' }}><div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>Victorias</div><div style={{ fontSize: '1.2rem', fontWeight: 'bold', color: '#10b981' }}>{stats.victorias}</div></div>
+            <div style={{ background: '#1e293b', padding: '0.6rem', borderRadius: '0.5rem' }}><div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>Empates</div><div style={{ fontSize: '1.2rem', fontWeight: 'bold', color: '#f59e0b' }}>{stats.empates}</div></div>
+            <div style={{ background: '#1e293b', padding: '0.6rem', borderRadius: '0.5rem' }}><div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>Derrotas</div><div style={{ fontSize: '1.2rem', fontWeight: 'bold', color: '#ef4444' }}>{stats.derrotas}</div></div>
+            <div style={{ background: '#1e293b', padding: '0.6rem', borderRadius: '0.5rem' }}><div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>Efectividad</div><div style={{ fontSize: '1.2rem', fontWeight: 'bold', color: '#38bdf8' }}>{stats.efectividad}%</div></div>
+            <div style={{ background: '#1e293b', padding: '0.6rem', borderRadius: '0.5rem' }}><div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>Racha Actual</div><div style={{ fontSize: '0.95rem', fontWeight: 'bold', color: '#f8fafc', marginTop: '0.2rem' }}>{stats.rachaTexto}</div></div>
           </div>
         </div>
       )}
@@ -132,26 +116,25 @@ export default function TablaRanking({ jugadores, partidas = [], cargando, esAdm
         <p style={{ color: '#94a3b8' }}>No se encontró ningún jugador con "{busqueda}".</p>
       ) : (
         <div style={{ overflowX: 'auto' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: esAdmin ? '50px 1fr 120px 120px 80px' : '50px 1fr 120px 120px', padding: '0.75rem', borderBottom: '1px solid #334155', color: '#94a3b8', fontWeight: 'bold' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: esAdmin ? '50px 1fr 120px 120px 130px' : '50px 1fr 120px 120px', padding: '0.75rem', borderBottom: '1px solid #334155', color: '#94a3b8', fontWeight: 'bold' }}>
             <div>#</div>
             <div>Jugador</div>
             <div>Elo 3-Jaques</div>
             <div>Partidas</div>
-            {esAdmin && <div style={{ textAlign: 'right' }}>Borrar</div>}
+            {esAdmin && <div style={{ textAlign: 'right' }}>Título / Borrar</div>}
           </div>
           {filtrados.map((j) => (
-            <div
-              key={j.id}
-              onClick={() => setSeleccionado(j)}
-              title="Haz clic para ver estadísticas"
-              style={{ display: 'grid', gridTemplateColumns: esAdmin ? '50px 1fr 120px 120px 80px' : '50px 1fr 120px 120px', padding: '0.75rem', borderBottom: '1px solid #334155', alignItems: 'center', cursor: 'pointer', background: seleccionado?.id === j.id ? '#0f172a' : 'transparent' }}
-            >
+            <div key={j.id} onClick={() => setSeleccionado(j)} title="Haz clic para ver estadísticas" style={{ display: 'grid', gridTemplateColumns: esAdmin ? '50px 1fr 120px 120px 130px' : '50px 1fr 120px 120px', padding: '0.75rem', borderBottom: '1px solid #334155', alignItems: 'center', cursor: 'pointer', background: seleccionado?.id === j.id ? '#0f172a' : 'transparent' }}>
               <div style={{ fontWeight: 'bold', fontSize: j.puesto <= 3 ? '1.15rem' : '1rem', color: '#cbd5e1' }}>{obtenerMedalla(j.puesto)}</div>
-              <div style={{ fontWeight: '500', textDecoration: 'underline dotted #475569' }}>{j.nombre}</div>
+              <div style={{ fontWeight: '500', display: 'flex', alignItems: 'center' }}>{renderTitulo(j.titulo)}<span style={{ textDecoration: 'underline dotted #475569' }}>{j.nombre}</span></div>
               <div style={{ fontWeight: 'bold', color: '#38bdf8' }}>{j.elo}</div>
               <div style={{ color: '#94a3b8' }}>{j.partidas || 0} (K={(j.partidas || 0) < 30 ? 40 : 20})</div>
               {esAdmin && (
-                <div style={{ textAlign: 'right' }} onClick={(e) => e.stopPropagation()}>
+                <div style={{ textAlign: 'right', display: 'flex', justifyContent: 'flex-end', gap: '0.5rem', alignItems: 'center' }} onClick={(e) => e.stopPropagation()}>
+                  <select value={j.titulo || ''} onChange={(e) => onCambiarTitulo(j.id, e.target.value)} style={{ background: '#0f172a', color: '#fbbf24', border: '1px solid #475569', borderRadius: '0.3rem', padding: '0.2rem', fontSize: '0.8rem' }}>
+                    <option value="">Sin título</option>
+                    {TITULOS.map((t) => <option key={t} value={t}>{t}</option>)}
+                  </select>
                   <button onClick={() => onEliminar(j.id, j.nombre)} style={{ background: 'transparent', border: 'none', color: '#ef4444', cursor: 'pointer', fontWeight: 'bold', fontSize: '1rem' }}>✕</button>
                 </div>
               )}
