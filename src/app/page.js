@@ -69,11 +69,17 @@ export default function Home() {
     setMensaje(`Jugador ${nombre} eliminado.`);
     cargarDatos();
   }
-    async function cambiarTitulo(id, nuevoTitulo) {
+      async function cambiarTitulo(id, nuevoTitulo) {
     if (!esAdmin) return;
-    await supabase.from('jugadores').update({ titulo: nuevoTitulo }).eq('id', id);
-    cargarDatos();
+    const { error } = await supabase.from('jugadores').update({ titulo: nuevoTitulo }).eq('id', id);
+    if (error) {
+      setMensaje('Error al cambiar título: ' + error.message);
+    } else {
+      setMensaje(nuevoTitulo ? `🏅 Título ${nuevoTitulo} asignado.` : 'Título removido.');
+      cargarDatos();
+    }
   }
+
 
    async function eliminarPartida(id) {
     if (!esAdmin) return;
