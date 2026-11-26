@@ -2,9 +2,11 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import TablaRanking from './TablaRanking';
+import HistorialPartidas from './HistorialPartidas';
 
 export default function Home() {
   const [jugadores, setJugadores] = useState([]);
+  const [partidas, setPartidas] = useState([]);
   const [cargando, setCargando] = useState(true);
   const [nombreNuevo, setNombreNuevo] = useState('');
   const [jugadorA, setJugadorA] = useState('');
@@ -16,7 +18,7 @@ export default function Home() {
   const [passwordInput, setPasswordInput] = useState('');
 
   useEffect(() => {
-    cargarJugadores();
+    cargarDatos();
     if (localStorage.getItem('admin_3jaques') === 'true') setEsAdmin(true);
   }, []);
 
@@ -40,10 +42,12 @@ export default function Home() {
     setMensaje('🔒 Sesión cerrada.');
   }
 
-  async function cargarJugadores() {
+  async function cargarDatos() {
     setCargando(true);
-    const { data } = await supabase.from('jugadores').select('*').order('elo', { ascending: false });
-    if (data) setJugadores(data);
+    const { data: dataJug } = await supabase.from('jugadores').select('*').order('elo', { ascending: false });
+    const { data: dataPart } = await supabase.from('partidas').select('*').order('created_at', { ascending: false }).limit(30);
+    if (dataJug) setJugadores(dataJug);
+    if (dataPart) setPartidas(dataPart);
     setCargando(false);
   }
 
@@ -54,7 +58,7 @@ export default function Home() {
     if (!error) {
       setNombreNuevo('');
       setMensaje('¡Jugador registrado con 1500 puntos base!');
-      cargarJugadores();
+      cargarDatos();
     }
   }
 
@@ -62,7 +66,7 @@ export default function Home() {
     if (!esAdmin || !confirm(`¿Eliminar a ${nombre}?`)) return;
     await supabase.from('jugadores').delete().eq('id', id);
     setMensaje(`Jugador ${nombre} eliminado.`);
-    cargarJugadores();
+    cargarDatos();
   }
 
   async function registrarPartida(e) {
@@ -75,13 +79,18 @@ export default function Home() {
     const espA = 1 / (1 + Math.pow(10, (pB.elo - pA.elo) / 400));
     const espB = 1 / (1 + Math.pow(10, (pA.elo - pB.elo) / 400));
     const sA = parseFloat(resultado);
-    const nuevoA = Math.round(pA.elo + kA * (sA - espA));
-    const nuevoB = Math.round(pB.elo + kB * ((1 - sA) - espB));
+    const diffA = Math.round(kA * (sA - espA));
+    const diffB = Math.round(kB * ((1 - sA) - espB));
+    const nuevoA = pA.elo + diffA;
+    const nuevoB = pB.elo + diffB;
+    const textoRes = sA === 1 ? '1 - 0' : sA === 0.5 ? '½ - ½' : '0 - 1';
 
     await supabase.from('jugadores').update({ elo: nuevoA, partidas: (pA.partidas || 0) + 1 }).eq('id', pA.id);
     await supabase.from('jugadores').update({ elo: nuevoB, partidas: (pB.partidas || 0) + 1 }).eq('id', pB.id);
-    setMensaje(`¡Partida registrada! ${pA.nombre}: ${nuevoA} | ${pB.nombre}: ${nuevoB}`);
-    cargarJugadores();
+    await supabase.from('partidas').insert([{ blancas: pA.nombre, negras: pB.nombre, resultado: textoRes, cambio_blancas: diffA, cambio_negras: diffB }]);
+
+    setMensaje(`¡Partida registrada! ${pA.nombre}: ${nuevoA} (${diffA >= 0 ? `+${diffA}` : diffA}) | ${pB.nombre}: ${nuevoB} (${diffB >= 0 ? `+${diffB}` : diffB})`);
+    cargarDatos();
   }
 
   return (
@@ -144,9 +153,14 @@ export default function Home() {
         </div>
       )}
 
-      <section style={{ background: '#1e293b', padding: '1.5rem', borderRadius: '0.75rem', border: '1px solid #334155' }}>
+      <section style={{ background: '#1e293b', padding: '1.5rem', borderRadius: '0.75rem', border: '1px solid #334155', marginBottom: '2rem' }}>
         <h2 style={{ fontSize: '1.25rem', marginTop: 0 }}>🏅 Tabla General de Posiciones</h2>
         <TablaRanking jugadores={jugadores} cargando={cargando} esAdmin={esAdmin} onEliminar={eliminarJugador} />
+      </section>
+
+      <section style={{ background: '#1e293b', padding: '1.5rem', borderRadius: '0.75rem', border: '1px solid #334155' }}>
+        <h2 style={{ fontSize: '1.25rem', marginTop: 0 }}>📜 Últimas Partidas Oficiales</h2>
+        <HistorialPartidas partidas={partidas} />
       </section>
     </main>
   );
