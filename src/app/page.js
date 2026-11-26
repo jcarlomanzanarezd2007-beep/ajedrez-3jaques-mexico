@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { supabase } from '../../lib/supabase';
+import { supabase } from '../lib/supabase';
 import { Trophy, Calculator, UserPlus, Swords, Award } from 'lucide-react';
 
 export default function Home() {
