@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import TablaRanking from './TablaRanking';
 import HistorialPartidas from './HistorialPartidas';
+import RegistroPublico from './RegistroPublico';
 
 export default function Home() {
   const [jugadores, setJugadores] = useState([]);
@@ -120,16 +121,10 @@ export default function Home() {
 
       {mensaje && <div style={{ background: '#064e3b', border: '1px solid #10b981', color: '#a7f3d0', padding: '0.75rem', borderRadius: '0.5rem', marginBottom: '1.5rem', textAlign: 'center' }}>{mensaje}</div>}
 
-      {esAdmin && (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem', marginBottom: '2.5rem' }}>
-          <section style={{ background: '#1e293b', padding: '1.5rem', borderRadius: '0.75rem', border: '1px solid #334155' }}>
-            <h2 style={{ fontSize: '1.1rem', marginTop: 0 }}>👤 Registrar Jugador</h2>
-            <form onSubmit={agregarJugador} style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-              <input type="text" placeholder="Nombre completo" value={nombreNuevo} onChange={(e) => setNombreNuevo(e.target.value)} style={{ padding: '0.6rem', borderRadius: '0.4rem', border: '1px solid #475569', background: '#0f172a', color: '#fff' }} required />
-              <div style={{ padding: '0.6rem', borderRadius: '0.4rem', border: '1px solid #334155', background: '#0f172a', color: '#94a3b8', fontSize: '0.9rem' }}>Elo inicial: <strong style={{ color: '#38bdf8' }}>1500 puntos (K=40)</strong></div>
-              <button type="submit" style={{ padding: '0.7rem', borderRadius: '0.4rem', border: 'none', background: '#0284c7', color: '#fff', fontWeight: 'bold', cursor: 'pointer' }}>Añadir al Ranking</button>
-            </form>
-          </section>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem', marginBottom: '2.5rem' }}>
+        <RegistroPublico jugadores={jugadores} onRegistrado={cargarDatos} onMensaje={setMensaje} />
+        {esAdmin && (
+
 
           <section style={{ background: '#1e293b', padding: '1.5rem', borderRadius: '0.75rem', border: '1px solid #334155' }}>
             <h2 style={{ fontSize: '1.1rem', marginTop: 0 }}>⚔️ Registrar Partida (3 Jaques)</h2>
@@ -150,8 +145,9 @@ export default function Home() {
               <button type="submit" style={{ padding: '0.7rem', borderRadius: '0.4rem', border: 'none', background: '#e11d48', color: '#fff', fontWeight: 'bold', cursor: 'pointer' }}>Actualizar Elo</button>
             </form>
           </section>
-        </div>
-      )}
+               )}
+      </div>
+
 
       <section style={{ background: '#1e293b', padding: '1.5rem', borderRadius: '0.75rem', border: '1px solid #334155', marginBottom: '2rem' }}>
         <h2 style={{ fontSize: '1.25rem', marginTop: 0 }}>🏅 Tabla General de Posiciones</h2>
