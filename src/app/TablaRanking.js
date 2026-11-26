@@ -9,9 +9,17 @@ export default function TablaRanking({ jugadores, partidas = [], cargando, esAdm
   if (jugadores.length === 0) return <p style={{ color: '#94a3b8' }}>Aún no hay jugadores registrados.</p>;
 
   const jugadoresConPuesto = jugadores.map((j, index) => ({ ...j, puesto: index + 1 }));
+  const top3 = jugadoresConPuesto.slice(0, 3);
   const filtrados = jugadoresConPuesto.filter((j) =>
     j.nombre.toLowerCase().includes(busqueda.toLowerCase())
   );
+
+  function obtenerMedalla(puesto) {
+    if (puesto === 1) return '🥇';
+    if (puesto === 2) return '🥈';
+    if (puesto === 3) return '🥉';
+    return puesto;
+  }
 
   function obtenerEstadisticas(nombreJugador) {
     let victorias = 0, empates = 0, derrotas = 0;
@@ -24,12 +32,12 @@ export default function TablaRanking({ jugadores, partidas = [], cargando, esAdm
       else derrotas++;
     });
 
-    // Calcular racha actual (las partidas vienen ordenadas de la más reciente a la más antigua)
     let rachaTexto = 'Sin partidas';
     if (historial.length > 0) {
-      const tipoPrimero = historial[0].resultado === '½ - ½'
+      const primera = historial[0];
+      const tipoPrimero = primera.resultado === '½ - ½'
         ? 'E'
-        : ((historial[0].blancas === nombreJugador && historial[0].resultado === '1 - 0') || (historial[0].negras === nombreJugador && historial[0].resultado === '0 - 1'))
+        : ((primera.blancas === nombreJugador && primera.resultado === '1 - 0') || (primera.negras === nombreJugador && primera.resultado === '0 - 1'))
           ? 'V' : 'D';
       let conteo = 0;
       for (const p of historial) {
@@ -45,13 +53,34 @@ export default function TablaRanking({ jugadores, partidas = [], cargando, esAdm
 
     const total = victorias + empates + derrotas;
     const efectividad = total > 0 ? Math.round(((victorias + empates * 0.5) / total) * 100) : 0;
-    return { victorias, empates, derrotas, rachaTexto, efectividad, historial };
+    return { victorias, empates, derrotas, rachaTexto, efectividad };
   }
 
   const stats = seleccionado ? obtenerEstadisticas(seleccionado.nombre) : null;
 
   return (
     <div>
+      {/* Podio Top 3 */}
+      {!busqueda && top3.length > 0 && (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '0.75rem', marginBottom: '1.25rem' }}>
+          {top3.map((j) => {
+            const borde = j.puesto === 1 ? '#f59e0b' : j.puesto === 2 ? '#94a3b8' : '#b45309';
+            return (
+              <div
+                key={j.id}
+                onClick={() => setSeleccionado(j)}
+                style={{ background: '#0f172a', border: `1px solid ${borde}`, borderRadius: '0.65rem', padding: '0.9rem', textAlign: 'center', cursor: 'pointer' }}
+              >
+                <div style={{ fontSize: '1.6rem', marginBottom: '0.25rem' }}>{obtenerMedalla(j.puesto)}</div>
+                <div style={{ fontWeight: 'bold', fontSize: '0.95rem', marginBottom: '0.2rem' }}>{j.nombre}</div>
+                <div style={{ color: '#38bdf8', fontWeight: 'bold', fontSize: '1.05rem' }}>{j.elo} Elo</div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Buscador */}
       <div style={{ marginBottom: '1rem' }}>
         <input
           type="text"
@@ -67,7 +96,7 @@ export default function TablaRanking({ jugadores, partidas = [], cargando, esAdm
         <div style={{ background: '#0f172a', border: '1px solid #38bdf8', borderRadius: '0.75rem', padding: '1.25rem', marginBottom: '1.5rem' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
             <div>
-              <span style={{ color: '#f59e0b', fontWeight: 'bold', marginRight: '0.5rem' }}>#{seleccionado.puesto}</span>
+              <span style={{ color: '#f59e0b', fontWeight: 'bold', marginRight: '0.5rem' }}>{obtenerMedalla(seleccionado.puesto)}</span>
               <strong style={{ fontSize: '1.15rem' }}>{seleccionado.nombre}</strong>
               <span style={{ marginLeft: '0.75rem', color: '#38bdf8', fontWeight: 'bold' }}>{seleccionado.elo} Elo</span>
             </div>
@@ -117,7 +146,7 @@ export default function TablaRanking({ jugadores, partidas = [], cargando, esAdm
               title="Haz clic para ver estadísticas"
               style={{ display: 'grid', gridTemplateColumns: esAdmin ? '50px 1fr 120px 120px 80px' : '50px 1fr 120px 120px', padding: '0.75rem', borderBottom: '1px solid #334155', alignItems: 'center', cursor: 'pointer', background: seleccionado?.id === j.id ? '#0f172a' : 'transparent' }}
             >
-              <div style={{ fontWeight: 'bold', color: j.puesto === 1 ? '#f59e0b' : '#cbd5e1' }}>{j.puesto}</div>
+              <div style={{ fontWeight: 'bold', fontSize: j.puesto <= 3 ? '1.15rem' : '1rem', color: '#cbd5e1' }}>{obtenerMedalla(j.puesto)}</div>
               <div style={{ fontWeight: '500', textDecoration: 'underline dotted #475569' }}>{j.nombre}</div>
               <div style={{ fontWeight: 'bold', color: '#38bdf8' }}>{j.elo}</div>
               <div style={{ color: '#94a3b8' }}>{j.partidas || 0} (K={(j.partidas || 0) < 30 ? 40 : 20})</div>
