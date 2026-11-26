@@ -69,6 +69,12 @@ export default function Home() {
     setMensaje(`Jugador ${nombre} eliminado.`);
     cargarDatos();
   }
+  async function eliminarPartida(id) {
+    if (!esAdmin || !confirm('¿Eliminar esta partida del historial?')) return;
+    await supabase.from('partidas').delete().eq('id', id);
+    setMensaje('Partida eliminada del historial.');
+    cargarDatos();
+  }
 
   async function registrarPartida(e) {
     e.preventDefault();
@@ -156,7 +162,8 @@ export default function Home() {
 
       <section style={{ background: '#1e293b', padding: '1.5rem', borderRadius: '0.75rem', border: '1px solid #334155' }}>
         <h2 style={{ fontSize: '1.25rem', marginTop: 0 }}>📜 Últimas Partidas Oficiales</h2>
-        <HistorialPartidas partidas={partidas} />
+       <HistorialPartidas partidas={partidas} esAdmin={esAdmin} onEliminarPartida={eliminarPartida} />
+
       </section>
     </main>
   );
